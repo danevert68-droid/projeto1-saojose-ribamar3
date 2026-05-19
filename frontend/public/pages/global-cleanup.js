@@ -211,6 +211,56 @@
     if (sairBtn) sairBtn.addEventListener('click', _ijkLogout, true);
   }
 
+  // ====== Compactação do header em MOBILE (apenas ≤ 781px) ======
+  function injectMobileCompactCSS() {
+    if (document.getElementById('ijk-mobile-compact-css')) return;
+    var s = document.createElement('style');
+    s.id = 'ijk-mobile-compact-css';
+    s.textContent = ''
+      // Compactar SOMENTE em telas pequenas
+      + '@media (max-width: 781px){'
+      // 1) Barra amarela do topo (telefone, email, ACESSO / CRIAR USUÁRIO)
+      + '.top-info{padding:2px 6px !important;}'
+      + '.top-info .wp-block-columns{gap:6px !important;margin:0 !important;}'
+      + '.top-info .wp-block-column{padding:2px 4px !important;margin:0 !important;flex-basis:auto !important;}'
+      + '.top-info .wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column{flex-basis:auto !important;}'
+      + '.top-info p,.top-info a,.top-links a{font-size:11px !important;line-height:1.25 !important;margin:0 !important;}'
+      + '.top-info figure,.top-info .wp-block-image{margin:0 4px 0 0 !important;display:inline-block !important;vertical-align:middle;}'
+      + '.top-info figure img,.top-info .wp-block-image img{width:10px !important;height:10px !important;}'
+      // Empilhar telefone/email em linha única, ACESSO logo abaixo
+      + '.top-info .header-details .is-layout-flex{justify-content:center !important;gap:10px !important;flex-wrap:wrap !important;}'
+      // 2) Logo (Instituto JKMA) - diminuir bastante
+      + '.logo-box{padding:6px 10px !important;width:60% !important;max-width:230px !important;margin:0 auto !important;border-radius:0 !important;}'
+      + '.logo-box .wp-block-site-logo img,.logo-box img.custom-logo,.logo-box img{max-width:160px !important;width:100% !important;height:auto !important;}'
+      // Bloco do logo + paddings dos containers do header
+      + '.logo-block{padding:0 !important;}'
+      + '.menu-header,.inner-menu-header,.inner-upper-header{padding:4px 8px !important;gap:4px !important;}'
+      + '.menu-header .wp-block-columns,.inner-menu-header .wp-block-columns{gap:4px !important;margin:0 !important;}'
+      // 3) Ícones sociais menores
+      + '.menu-header .wp-block-social-links,.social-block .wp-block-social-links{gap:10px !important;font-size:16px !important;justify-content:center !important;margin:2px 0 !important;}'
+      + '.menu-header .wp-social-link,.social-block .wp-social-link{width:26px !important;height:26px !important;}'
+      + '.menu-header .wp-block-social-link a,.social-block .wp-block-social-link a{padding:.15em !important;}'
+      + '.menu-header .wp-block-social-link svg,.social-block .wp-block-social-link svg{width:13px !important;height:13px !important;}'
+      // 4) Remover separadores grandes do header
+      + '.menu-header hr,.inner-menu-header hr,.top-info hr{margin:2px 0 !important;}'
+      + '.menu-header .wp-block-spacer,.inner-menu-header .wp-block-spacer,.top-info .wp-block-spacer{height:4px !important;min-height:0 !important;}'
+      // 5) Cover image (CONCURSO ...) - reduzir altura
+      + '.wp-block-cover.inner-cover-img,.wp-block-cover{min-height:200px !important;}'
+      + '.inner-cover-img h2{font-size:22px !important;padding:0 12px !important;}'
+      + '}'
+      // Tela muito pequena (< 480px) - ainda mais compacto
+      + '@media (max-width: 480px){'
+      + '.top-info p,.top-info a,.top-links a{font-size:10px !important;}'
+      + '.logo-box{width:55% !important;max-width:200px !important;padding:4px 8px !important;}'
+      + '.logo-box .wp-block-site-logo img,.logo-box img.custom-logo,.logo-box img{max-width:140px !important;}'
+      + '.menu-header .wp-social-link,.social-block .wp-social-link{width:24px !important;height:24px !important;}'
+      + '.menu-header .wp-block-social-link svg,.social-block .wp-block-social-link svg{width:12px !important;height:12px !important;}'
+      + '.inner-cover-img h2{font-size:18px !important;}'
+      + '.wp-block-cover.inner-cover-img,.wp-block-cover{min-height:160px !important;}'
+      + '}';
+    (document.head || document.documentElement).appendChild(s);
+  }
+
   function removeVagasBadge() {
     // Remove qualquer elemento cujo texto seja "X vaga(s) neste cargo" (e seu container pai com background)
     var nodes = document.querySelectorAll('span, div, p, small, strong, em, b, i');
@@ -247,6 +297,7 @@
   }
 
   function tick() {
+    try { injectMobileCompactCSS(); } catch (e) {}
     try { removeWhatsApp(); } catch (e) {}
     try { updateTitle(); } catch (e) {}
     try { wireTopNav(); } catch (e) {}
