@@ -247,6 +247,18 @@
       // 5) Cover image (CONCURSO ...) - reduzir altura
       + '.wp-block-cover.inner-cover-img,.wp-block-cover{min-height:200px !important;}'
       + '.inner-cover-img h2{font-size:22px !important;padding:0 12px !important;}'
+      // 6) FORÇA colunas de conteúdo a EMPILHAR no mobile (resolve 3 colunas espremidas)
+      + '.wp-block-columns:not(.is-not-stacked-on-mobile){flex-direction:column !important;flex-wrap:wrap !important;gap:8px !important;}'
+      + '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column{flex-basis:100% !important;width:100% !important;max-width:100% !important;margin:0 !important;}'
+      // Texto das colunas: alinhar à esquerda e reduzir um pouco a fonte
+      + '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column p,'
+      + '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column h1,'
+      + '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column h2,'
+      + '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column h3{font-size:15px !important;line-height:1.4 !important;text-align:left !important;}'
+      // Reduzir paddings de groups internos
+      + '.wp-block-group{padding-left:8px !important;padding-right:8px !important;}'
+      // Esconder colunas que ficaram vazias no mobile
+      + '.wp-block-column:empty{display:none !important;}'
       + '}'
       // Tela muito pequena (< 480px) - ainda mais compacto
       + '@media (max-width: 480px){'
