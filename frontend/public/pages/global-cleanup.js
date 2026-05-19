@@ -245,8 +245,14 @@
       + '.menu-header hr,.inner-menu-header hr,.top-info hr{margin:2px 0 !important;}'
       + '.menu-header .wp-block-spacer,.inner-menu-header .wp-block-spacer,.top-info .wp-block-spacer{height:4px !important;min-height:0 !important;}'
       // 5) Cover image (CONCURSO ...) - reduzir altura
-      + '.wp-block-cover.inner-cover-img,.wp-block-cover{min-height:200px !important;}'
+      + '.wp-block-cover.inner-cover-img,.wp-block-cover{min-height:200px !important;margin-bottom:0 !important;}'
       + '.inner-cover-img h2{font-size:22px !important;padding:0 12px !important;}'
+      // 5.1) Subir o banner "FAÇA SUA INSCRIÇÃO" (e demais elementos) logo após a cover
+      + ':where(.wp-site-blocks)>*{margin-block-start:8px !important;}'
+      + '.wp-block-group,.wp-block-columns,.wp-block-image,figure{margin-top:6px !important;margin-bottom:6px !important;}'
+      + '.wp-block-image{padding-top:0 !important;padding-bottom:0 !important;}'
+      + '.wp-block-image img{display:block;margin:0 auto !important;}'
+      + 'p{margin-top:4px !important;margin-bottom:4px !important;}'
       // 6) FORÇA colunas de conteúdo a EMPILHAR no mobile (resolve 3 colunas espremidas)
       + '.wp-block-columns:not(.is-not-stacked-on-mobile){flex-direction:column !important;flex-wrap:wrap !important;gap:8px !important;}'
       + '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column{flex-basis:100% !important;width:100% !important;max-width:100% !important;margin:0 !important;}'
