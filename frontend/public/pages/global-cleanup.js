@@ -248,11 +248,19 @@
       + '.wp-block-cover.inner-cover-img,.wp-block-cover{min-height:200px !important;margin-bottom:0 !important;}'
       + '.inner-cover-img h2{font-size:22px !important;padding:0 12px !important;}'
       // 5.1) Subir o banner "FAÇA SUA INSCRIÇÃO" (e demais elementos) logo após a cover
-      + ':where(.wp-site-blocks)>*{margin-block-start:8px !important;}'
-      + '.wp-block-group,.wp-block-columns,.wp-block-image,figure{margin-top:6px !important;margin-bottom:6px !important;}'
+      // Zerar TODOS os espaçamentos entre o cover e o primeiro conteúdo (botão de inscrição)
+      + 'main,main.wp-block-group,main.wp-block-group.has-global-padding,#wp--skip-link--target,main#wp--skip-link--target{padding-top:0 !important;padding-bottom:8px !important;margin-top:0 !important;}'
+      + ':where(.wp-site-blocks)>*{margin-block-start:0 !important;}'
+      + 'main .wp-block-group,main .wp-block-group.alignwide,main .entry-content,main .wp-block-post-content{margin-top:0 !important;margin-bottom:0 !important;padding-top:0 !important;padding-bottom:0 !important;}'
+      + 'main div[align=center]{margin-top:0 !important;padding-top:0 !important;}'
+      + 'main div[align=center] p:first-child,main .entry-content p:first-child{margin-top:0 !important;padding-top:0 !important;}'
+      + '.wp-block-group,.wp-block-columns,.wp-block-image,figure{margin-top:4px !important;margin-bottom:4px !important;}'
       + '.wp-block-image{padding-top:0 !important;padding-bottom:0 !important;}'
       + '.wp-block-image img{display:block;margin:0 auto !important;}'
-      + 'p{margin-top:4px !important;margin-bottom:4px !important;}'
+      + 'p{margin-top:2px !important;margin-bottom:2px !important;}'
+      // Banner de inscrição (imagem do "FAÇA SUA INSCRIÇÃO") encostado ao topo
+      + 'a[data-testid="banner-inscricao-link-2"],a[data-testid="banner-inscricao-link"]{display:block;margin-top:0 !important;padding-top:0 !important;}'
+      + 'a[data-testid="banner-inscricao-link-2"] img,a[data-testid="banner-inscricao-link"] img{margin-top:0 !important;display:block;}'
       // 6) FORÇA colunas de conteúdo a EMPILHAR no mobile (resolve 3 colunas espremidas)
       + '.wp-block-columns:not(.is-not-stacked-on-mobile){flex-direction:column !important;flex-wrap:wrap !important;gap:8px !important;}'
       + '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column{flex-basis:100% !important;width:100% !important;max-width:100% !important;margin:0 !important;}'

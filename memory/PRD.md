@@ -46,11 +46,15 @@ Importação do site do GitHub + evoluções: cards reordenados, validação de 
   - Inscrição aparece imediatamente no painel admin `/donaspainel` (testado: candidato `teste-insc2@example.com` criou inscrição via UI, foi gravada no MongoDB e aparece nos endpoints `/api/admin/inscricoes` e `/api/inscricoes/minhas`).
 
 - **2026-05-17 (cont.):** **Página de detalhe da inscrição (pós-finalização)**:
-  - Nova rota `/inscricao/:id` (protegida) que carrega `public/pages/pagamento.html` (cópia adaptada do template original do cliente).
-  - Layout completo: Status + Taxa + Situação + Prazo, Documentos da Etapa, Dados da Inscrição (Concurso + Edital + Entidade + Cargo + Vagas), Prazos (Inscrições/Isenção/Pagamento/Prova), Timeline de Etapas (Prova Objetiva / Avaliação de Títulos / Curso de Formação Inicial) e botões Gerar Boleto / Gerar PIX.
-  - Novo endpoint `GET /api/inscricoes/{id}` retorna a inscrição específica do candidato logado.
-  - Novo `pagamento-fill.js` chama esse endpoint, calcula prazos dinâmicos baseados em `created_at` e popula os campos visuais.
-  - O botão "Finalizar Inscrição" da revisão agora navega para `/inscricao/{id}` (em vez de `/inscricao`) levando o candidato direto à página com instruções de pagamento.
+  - Nova rota `/inscricao/:id` (protegida) que carrega `public/pages/pagamento.html`.
+  - Layout completo: Status + Taxa + Situação + Prazo, Documentos da Etapa, Dados da Inscrição (Concurso + Edital + Entidade + Cargo + Vagas), Prazos, Timeline e botões Gerar Boleto / Gerar PIX.
+  - Novo endpoint `GET /api/inscricoes/{id}` e `pagamento-fill.js` popula os campos visuais.
+
+- **2026-02 (atual):** **Fix MOBILE - CSS estático nas páginas HTML**:
+  - **Bug crítico identificado:** o arquivo `/app/frontend/public/pages/global-cleanup.js` NÃO era carregado externamente pelas páginas (a CSP `script-src 'unsafe-inline' data:` bloqueia scripts externos). Toda a CSS mobile estava sendo editada em vão.
+  - **Fix:** Injetada uma tag `<style id="ijk-mobile-compact-css">` com o CSS `@media (max-width: 781px){...}` diretamente em cada um dos 20 arquivos `.html` em `/app/frontend/public/pages/`. Script idempotente em `/tmp/inject_mobile_css.py` para futura manutenção.
+  - **Regras adicionadas:** `main { padding-top:0 !important }` + zeragem de margens em `.wp-block-group`, `.entry-content`, `<p>`, e `div[align=center]` para subir o banner "FAÇA SUA INSCRIÇÃO" e demais conteúdos logo após o cover.
+  - Mantém ajustes existentes (barra amarela compacta, logo menor, ícones sociais, colunas empilhando) — desktop INTOCADO (rules dentro do media query).
 
 ## Backlog (Fase 2 — Analytics do painel admin)
 - [ ] Dashboard com gráfico de Funil (Acesso → Login → Inscrição → PIX gerado → PIX copiado)
