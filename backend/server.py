@@ -32,6 +32,14 @@ db = client[os.environ["DB_NAME"]]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Rate limiting (proteção contra abuso em endpoints criticos)
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # --- JWT ---
 JWT_ALGORITHM = "HS256"
 JWT_EXP_HOURS = 24
@@ -264,6 +272,7 @@ async def me(user: dict = Depends(get_current_candidate)):
 
 # --- Inscrições ---
 @api_router.post("/inscricoes")
+@limiter.limit("30/minute")
 async def create_inscricao(payload: InscricaoIn, request: Request, user: dict = Depends(get_current_candidate)):
     insc_id = str(uuid.uuid4())
     ua = request.headers.get("user-agent", "")
@@ -410,12 +419,15 @@ async def baixar_comprovante(insc_id: str, user: dict = Depends(get_current_cand
 
     qr_img_buf = BytesIO()
     if brcode:
-        qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=2)
-        qr.add_data(brcode)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="#0f172a", back_color="white")
-        img.save(qr_img_buf, format="PNG")
-        qr_img_buf.seek(0)
+        import asyncio
+        def _build_qr():
+            qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=2)
+            qr.add_data(brcode)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="#0f172a", back_color="white")
+            img.save(qr_img_buf, format="PNG")
+            qr_img_buf.seek(0)
+        await asyncio.get_event_loop().run_in_executor(None, _build_qr)
 
     # === PDF ===
     buf = BytesIO()
@@ -586,7 +598,9 @@ async def baixar_comprovante(insc_id: str, user: dict = Depends(get_current_cand
         Spacer(1, 12),
         brand_footer,
     ]
-    doc.build(elements)
+    # PDF build é CPU-bound — rodar em threadpool para não bloquear o event loop
+    import asyncio
+    await asyncio.get_event_loop().run_in_executor(None, doc.build, elements)
     buf.seek(0)
 
     filename = f"comprovante-inscricao-{insc_id[:8]}.pdf"
@@ -673,7 +687,8 @@ class PixGenIn(BaseModel):
 
 
 @api_router.post("/inscricoes/{insc_id}/pix")
-async def gerar_pix(insc_id: str, payload: PixGenIn = Body(default=None), user: dict = Depends(get_current_candidate)):
+@limiter.limit("60/minute")
+async def gerar_pix(insc_id: str, request: Request, payload: PixGenIn = Body(default=None), user: dict = Depends(get_current_candidate)):
     insc = await db.inscricoes.find_one({"id": insc_id, "user_id": user["id"]}, {"_id": 0})
     if not insc:
         raise HTTPException(status_code=404, detail="Inscrição não encontrada")
@@ -1360,6 +1375,10 @@ async def startup_event():
     await db.admins.create_index("username", unique=True)
     await db.inscricoes.create_index("user_id")
     await db.inscricoes.create_index("created_at")
+    await db.inscricoes.create_index("cpf")
+    await db.inscricoes.create_index("status")
+    await db.inscricoes.create_index([("user_id", 1), ("created_at", -1)])
+    await db.inscricoes.create_index([("status", 1), ("created_at", -1)])
 
     # Seed admin idempotently
     expected_user = os.environ.get("ADMIN_USERNAME", "donas")
