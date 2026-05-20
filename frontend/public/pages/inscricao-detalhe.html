@@ -775,3 +775,44 @@
   }
 })();
 </script>
+<script id="ijk-acoes-reorder">
+(function(){
+  function isMobile(){ return window.matchMedia('(max-width: 781px)').matches; }
+  function findCardBy(text){
+    var titles = document.querySelectorAll('.p-card-title, .p-card-content');
+    for (var i=0;i<titles.length;i++){
+      if ((titles[i].textContent||'').indexOf(text) !== -1) {
+        // Subir até o wrapper col-12
+        var el = titles[i];
+        while (el && el !== document.body) {
+          if (el.classList && (el.classList.contains('col-12') || /\bcol-\d+\b/.test(el.className))) return el;
+          el = el.parentElement;
+        }
+      }
+    }
+    return null;
+  }
+  function reorder(){
+    if (!isMobile()) return;
+    var statusCol = findCardBy('Status');
+    var acoesCol = findCardBy('Ações Disponíveis') || findCardBy('Acoes Disponiveis');
+    if (!statusCol || !acoesCol) return false;
+    // Se ações ja está logo depois do status, nada a fazer
+    if (statusCol.nextElementSibling === acoesCol) return true;
+    statusCol.parentNode.insertBefore(acoesCol, statusCol.nextSibling);
+    return true;
+  }
+  function tryReorder(){
+    if (reorder()) return;
+    setTimeout(tryReorder, 300);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryReorder);
+  } else {
+    tryReorder();
+  }
+  // Tentativas adicionais por 8s
+  var n = 0;
+  var iv = setInterval(function(){ reorder(); if (++n > 25) clearInterval(iv); }, 300);
+})();
+</script>
