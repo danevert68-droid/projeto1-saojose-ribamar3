@@ -20,7 +20,7 @@ export function CandidateRoute({ children }) {
       </div>
     );
   }
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/signup" replace />;
   return (
     <>
       {children}

@@ -43,15 +43,12 @@ function App() {
             <Route path="/login" element={<StaticPage src="/pages/login.html" title="login" />} />
             <Route path="/signup" element={<StaticPage src="/pages/signup.html" title="signup" />} />
 
-            {/* Protegido — exige login do candidato */}
+            {/* Lista pública de concursos abertos — qualquer visitante pode ver */}
             <Route
               path="/inscricao"
-              element={
-                <CandidateRoute>
-                  <StaticPage src="/pages/inscricao.html" title="inscricao" />
-                </CandidateRoute>
-              }
+              element={<StaticPage src="/pages/inscricao.html" title="inscricao" />}
             />
+            {/* Cadastro do candidato — exige login */}
             <Route
               path="/cadastro"
               element={
