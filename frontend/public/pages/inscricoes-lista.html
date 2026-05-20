@@ -304,6 +304,18 @@
       </button>
     </div>
   </header>
+  <style id="ijk-mobile-topbar-fix">
+    @media (max-width: 781px) {
+      .topbar .icon-bell-btn,
+      .topbar .topbar-user-inline,
+      .topbar #topbar-user-inline,
+      .topbar .topbar-nav { display: none !important; }
+      .topbar { padding: 8px 12px !important; min-height: auto !important; gap: 8px !important; }
+      .topbar-brand img { height: 38px !important; width: auto !important; }
+      .topbar-actions { margin-left: auto !important; }
+      #btn-logout { color: #475569 !important; }
+    }
+  </style>
 
   <main class="container">
     <div class="page-head">
