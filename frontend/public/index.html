@@ -17,6 +17,25 @@
         <title>Área do Candidato</title>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
         <style>#emergent-badge,a[href*="emergent-badge"],a[href*="utm_source=emergent-badge"]{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;width:0 !important;height:0 !important;}</style>
+        <script>
+        (function(){
+          function kill(){
+            try {
+              document.querySelectorAll('#emergent-badge, a[href*="emergent-badge"], a[href*="utm_source=emergent-badge"]').forEach(function(el){
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+              });
+            } catch(e){}
+          }
+          kill();
+          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kill);
+          window.addEventListener('load', kill);
+          try {
+            var mo = new MutationObserver(kill);
+            mo.observe(document.documentElement, {childList:true, subtree:true});
+          } catch(e){}
+          setInterval(kill, 500);
+        })();
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
