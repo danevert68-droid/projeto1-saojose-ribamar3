@@ -1080,8 +1080,20 @@ async def admin_dashboard(_: dict = Depends(get_current_admin)):
             }
         )
 
-    # Top localizações — placeholder até termos tracking de IP/geo
+    # Top localizações — agregado dos eventos page_view (cidade/UF)
     top_locations: List[dict] = []
+    pipe = [
+        {"$match": {"type": "page_view", "city": {"$exists": True, "$ne": ""}}},
+        {"$group": {"_id": {"city": "$city", "state": "$state"}, "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 8},
+    ]
+    async for row in db.events.aggregate(pipe):
+        top_locations.append({
+            "city": row["_id"].get("city") or "—",
+            "state": row["_id"].get("state") or "",
+            "count": row["count"],
+        })
 
     # Atividade em tempo real — últimos 12 eventos (cadastros + inscrições)
     realtime = []
@@ -1138,6 +1150,102 @@ async def admin_clear(_: dict = Depends(get_current_admin)):
     return {
         "events_deleted": d3.deleted_count if d3 else 0,
     }
+
+
+# ---------- Tracking de Acessos ----------
+async def _geo_lookup(ip: str) -> dict:
+    """Geoip lookup com cache em ip_cache. Retorna {city,state,country}."""
+    if not ip or ip.startswith(("127.", "10.", "172.", "192.168.")):
+        return {"city": "", "state": "", "country": ""}
+    cached = await db.ip_cache.find_one({"_id": ip}, {"_id": 0})
+    if cached:
+        return cached
+    out = {"city": "", "state": "", "country": ""}
+    try:
+        async with httpx.AsyncClient(timeout=2.5) as cli:
+            r = await cli.get(f"https://ipapi.co/{ip}/json/")
+            if r.status_code == 200:
+                d = r.json()
+                out = {
+                    "city": (d.get("city") or "").strip(),
+                    "state": (d.get("region") or "").strip(),
+                    "country": (d.get("country_name") or "").strip(),
+                }
+    except Exception:
+        pass
+    try:
+        await db.ip_cache.update_one({"_id": ip}, {"$set": out}, upsert=True)
+    except Exception:
+        pass
+    return out
+
+
+@api_router.post("/track-access")
+@limiter.limit("120/minute")
+async def track_access(request: Request, payload: dict = Body(default=None)):
+    """Registra um page_view com IP + geolocalização + device.
+    Throttle por IP+path: ignora se o mesmo IP visitou a mesma rota nos últimos 60s.
+    """
+    ua = request.headers.get("user-agent", "")
+    ip = (
+        request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        or (request.client.host if request.client else "")
+    )
+    path = (payload or {}).get("path") if isinstance(payload, dict) else ""
+    path = (path or "/")[:200]
+    # Throttle simples: mesma combinação IP+path em 60s = ignorar
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+    cutoff = (_dt.now(_tz.utc) - _td(seconds=60)).isoformat()
+    recent = await db.events.find_one({
+        "type": "page_view", "ip": ip, "path": path,
+        "created_at": {"$gte": cutoff},
+    }, {"_id": 0, "id": 1})
+    if recent:
+        return {"ok": True, "deduped": True}
+    geo = await _geo_lookup(ip)
+    device = _detect_device(ua)
+    doc = {
+        "id": str(uuid.uuid4()),
+        "type": "page_view",
+        "ip": ip,
+        "path": path,
+        "city": geo.get("city", ""),
+        "state": geo.get("state", ""),
+        "country": geo.get("country", ""),
+        "device": device,
+        "user_agent": ua[:300],
+        "created_at": now_iso(),
+    }
+    await db.events.insert_one(doc)
+    return {"ok": True}
+
+
+@api_router.get("/admin/access-logs")
+async def admin_access_logs(_: dict = Depends(get_current_admin)):
+    """Lista acessos agrupados (mesmo IP+cidade+device aparece uma vez com contador)."""
+    pipe = [
+        {"$match": {"type": "page_view"}},
+        {"$sort": {"created_at": -1}},
+        {"$group": {
+            "_id": {"ip": "$ip", "city": "$city", "state": "$state", "device": "$device"},
+            "count": {"$sum": 1},
+            "last_at": {"$first": "$created_at"},
+        }},
+        {"$sort": {"last_at": -1}},
+        {"$limit": 500},
+    ]
+    rows = []
+    async for r in db.events.aggregate(pipe):
+        k = r["_id"]
+        rows.append({
+            "ip": k.get("ip") or "—",
+            "city": k.get("city") or "—",
+            "state": k.get("state") or "",
+            "device": (k.get("device") or "—").upper(),
+            "count": r["count"],
+            "last_at": r["last_at"],
+        })
+    return {"total": len(rows), "rows": rows}
 
 
 # ---------- Settings ----------
@@ -1379,6 +1487,9 @@ async def startup_event():
     await db.inscricoes.create_index("status")
     await db.inscricoes.create_index([("user_id", 1), ("created_at", -1)])
     await db.inscricoes.create_index([("status", 1), ("created_at", -1)])
+    await db.events.create_index("type")
+    await db.events.create_index("created_at")
+    await db.events.create_index([("type", 1), ("ip", 1), ("path", 1), ("created_at", -1)])
 
     # Seed admin idempotently
     expected_user = os.environ.get("ADMIN_USERNAME", "donas")

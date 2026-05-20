@@ -138,6 +138,7 @@ export default function AdminPanel() {
 function DashboardTab({ onAuthError }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [accessOpen, setAccessOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -188,7 +189,8 @@ function DashboardTab({ onAuthError }) {
       {/* KPIs */}
       <div className="adm-kpis">
         <KPI label="ACESSOS" icon="👁" iconBg="rgba(139,92,246,0.12)" iconColor="#8b5cf6" accent="#8b5cf6"
-             value={k.acessos} sub="Visitas registradas" testid="kpi-acessos" arrow />
+             value={k.acessos} sub="Visitas registradas" testid="kpi-acessos" arrow
+             onClick={() => setAccessOpen(true)} />
         <KPI label="TOTAL DE INSCRIÇÕES" icon="📋" iconBg="rgba(59,130,246,0.12)" iconColor="#3b82f6" accent="#3b82f6"
              value={k.total_inscricoes} sub="Candidatos cadastrados" testid="kpi-inscricoes" />
         <KPI label="VALOR TOTAL GERADO" icon="$" iconBg="rgba(16,185,129,0.12)" iconColor="#10b981" accent="#10b981"
@@ -334,13 +336,19 @@ function DashboardTab({ onAuthError }) {
           )}
         </div>
       </div>
+      <AccessLogsModal open={accessOpen} onClose={() => setAccessOpen(false)} />
     </>
   );
 }
 
-function KPI({ label, value, sub, icon, iconBg, iconColor, accent, testid, arrow }) {
+function KPI({ label, value, sub, icon, iconBg, iconColor, accent, testid, arrow, onClick }) {
   return (
-    <div className="adm-kpi" style={{ "--accent": accent }}>
+    <div
+      className="adm-kpi"
+      style={{ "--accent": accent, cursor: onClick ? "pointer" : "default" }}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+    >
       <div className="adm-kpi-icon" style={{ background: iconBg, color: iconColor }}>{icon}</div>
       <div className="adm-kpi-label">{label}</div>
       <div className="adm-kpi-value" data-testid={testid}>{value}</div>
@@ -348,6 +356,107 @@ function KPI({ label, value, sub, icon, iconBg, iconColor, accent, testid, arrow
       {arrow && <span className="adm-kpi-arrow">→</span>}
     </div>
   );
+}
+
+function AccessLogsModal({ open, onClose }) {
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [q, setQ] = useState("");
+  useEffect(() => {
+    if (!open) return;
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get("/admin/access-logs");
+        if (mounted) { setRows(data.rows || []); setTotal(data.total || 0); }
+      } catch (e) {
+        if (mounted) { setRows([]); setTotal(0); }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [open]);
+  if (!open) return null;
+  const ql = q.trim().toLowerCase();
+  const filtered = ql
+    ? rows.filter(r =>
+        (r.ip || "").toLowerCase().includes(ql) ||
+        (r.city || "").toLowerCase().includes(ql) ||
+        (r.state || "").toLowerCase().includes(ql) ||
+        (r.device || "").toLowerCase().includes(ql)
+      )
+    : rows;
+  return (
+    <div className="adm-modal-backdrop" onClick={onClose} data-testid="access-logs-modal">
+      <div className="adm-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 920 }}>
+        <div className="adm-modal-head">
+          <div>
+            <h3 style={{ margin: 0 }}>Acessos ao site</h3>
+            <div style={{ fontSize: 13, color: "#6b7280", marginTop: 2 }}>{total} visitas registradas</div>
+          </div>
+          <button type="button" className="adm-modal-close" onClick={onClose} data-testid="access-logs-close">×</button>
+        </div>
+        <div style={{ padding: "12px 20px 0" }}>
+          <input
+            type="text"
+            className="adm-input"
+            placeholder="Buscar por IP, cidade, UF ou dispositivo..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            data-testid="access-logs-search"
+            style={{ width: "100%" }}
+          />
+        </div>
+        <div style={{ padding: 20, overflowY: "auto", maxHeight: "65vh" }}>
+          {loading ? (
+            <div className="adm-empty">Carregando…</div>
+          ) : filtered.length === 0 ? (
+            <div className="adm-empty">Nenhum acesso registrado ainda.</div>
+          ) : (
+            <table className="adm-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", color: "#6b7280", fontSize: 12, textTransform: "uppercase" }}>
+                  <th style={{ padding: "8px 4px" }}>Data / Hora</th>
+                  <th style={{ padding: "8px 4px" }}>IP</th>
+                  <th style={{ padding: "8px 4px" }}>Localização</th>
+                  <th style={{ padding: "8px 4px" }}>Dispositivo</th>
+                  <th style={{ padding: "8px 4px", textAlign: "right" }}>Acessos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((r, idx) => (
+                  <tr key={idx} style={{ borderTop: "1px solid #f1f5f9", fontSize: 14 }}>
+                    <td style={{ padding: "10px 4px", whiteSpace: "nowrap" }}>{fmtDateTimeBR(r.last_at)}</td>
+                    <td style={{ padding: "10px 4px", color: "#2563eb" }}>{r.ip}</td>
+                    <td style={{ padding: "10px 4px" }}>{r.city}{r.state ? `/${r.state}` : ""}</td>
+                    <td style={{ padding: "10px 4px" }}>
+                      <span style={{
+                        padding: "2px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
+                        background: r.device === "DESKTOP" ? "#ede9fe" : "#dbeafe",
+                        color: r.device === "DESKTOP" ? "#6d28d9" : "#1d4ed8",
+                      }}>{r.device}</span>
+                    </td>
+                    <td style={{ padding: "10px 4px", textAlign: "right", fontWeight: 600 }}>{r.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function fmtDateTimeBR(iso) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  } catch { return iso; }
 }
 
 /* =========================================================

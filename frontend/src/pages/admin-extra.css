@@ -271,3 +271,30 @@
   align-items: center;
   gap: 8px;
 }
+
+/* Modal genérico do admin */
+.adm-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; padding: 20px;
+}
+.adm-modal {
+  background: #fff; border-radius: 14px; max-width: 920px; width: 100%;
+  max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 25px 60px -15px rgba(0,0,0,0.35);
+}
+.adm-modal-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 18px 22px 12px; border-bottom: 1px solid #f1f5f9;
+}
+.adm-modal-close {
+  background: transparent; border: none; font-size: 24px; cursor: pointer;
+  color: #64748b; padding: 0 6px;
+}
+.adm-modal-close:hover { color: #0f172a; }
+.adm-table th, .adm-table td { font-family: inherit; }
+.adm-input {
+  padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px;
+  font-size: 14px; outline: none; background: #f8fafc;
+}
+.adm-input:focus { border-color: #6366f1; background: #fff; }

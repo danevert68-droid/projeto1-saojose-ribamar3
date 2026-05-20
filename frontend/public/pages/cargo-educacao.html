@@ -594,3 +594,18 @@ nomeação <div class="flex gap-3 text-xs sm:text-sm"><span><i class="pi pi-cloc
   }
 })();
 </script>
+<script id="ijk-track-access">
+(function(){
+  try {
+    var path = (location && location.pathname) || '/';
+    // Não bloqueia o carregamento — chama sem await
+    fetch('/api/track-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: path }),
+      credentials: 'omit',
+      keepalive: true
+    }).catch(function(){});
+  } catch(e){}
+})();
+</script>
