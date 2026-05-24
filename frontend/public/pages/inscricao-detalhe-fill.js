@@ -152,8 +152,8 @@
       'Valor': taxa,
       'Prazo': fmtDate(prazoPagamento),
       'Prazo de Pagamento': fmtDate(prazoPagamento),
-      'Inscrito em': fmtDateTime(created),
-      'Atualizado em': fmtDateTime(created),
+      'Inscrito em': fmtDateTime(new Date()),
+      'Atualizado em': fmtDateTime(new Date()),
       'Inscrição': '#' + idShort,
       // chaves auxiliares para placeholders dinâmicos
       '__edital__': cfg.edital,
