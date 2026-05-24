@@ -6,7 +6,7 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 
 // Versão para invalidar cache quando atualizamos arquivos HTML
-const PAGE_VERSION = "v70";
+const PAGE_VERSION = "v71";
 
 // Componente reutilizável para carregar páginas estáticas via iframe
 const StaticPage = ({ src, title }) => (

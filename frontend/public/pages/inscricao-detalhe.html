@@ -363,6 +363,33 @@
         if (el.textContent !== map['__requisitos__']) el.textContent = map['__requisitos__'];
       });
     }
+    // Padrão 3 (inline "Label: data" dentro de um único <span>): substitui texto após ":" pela data correta
+    if (map['Inscrito em'] || map['Atualizado em']) {
+      document.querySelectorAll('span').forEach(function (sp) {
+        if (sp.children.length > 1) return;
+        var raw = (sp.textContent || '').trim();
+        var mIns = raw.match(/^(Inscrito em)\s*:\s*(.+)$/i);
+        var mAtu = raw.match(/^(Atualizado em)\s*:\s*(.+)$/i);
+        if (mIns && map['Inscrito em']) {
+          var newTxt = 'Inscrito em: ' + map['Inscrito em'];
+          if (sp.textContent !== newTxt) {
+            // preserva o ícone <i> se houver
+            var icon = sp.querySelector('i');
+            sp.textContent = '';
+            if (icon) sp.appendChild(icon);
+            sp.appendChild(document.createTextNode(newTxt));
+          }
+        } else if (mAtu && map['Atualizado em']) {
+          var newTxt2 = 'Atualizado em: ' + map['Atualizado em'];
+          if (sp.textContent !== newTxt2) {
+            var icon2 = sp.querySelector('i');
+            sp.textContent = '';
+            if (icon2) sp.appendChild(icon2);
+            sp.appendChild(document.createTextNode(newTxt2));
+          }
+        }
+      });
+    }
   }
 
   function showLoadingState() {
