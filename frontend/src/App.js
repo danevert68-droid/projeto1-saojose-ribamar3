@@ -6,7 +6,7 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 
 // Versão para invalidar cache quando atualizamos arquivos HTML
-const PAGE_VERSION = "v71";
+const PAGE_VERSION = "v72";
 
 // Componente reutilizável para carregar páginas estáticas via iframe
 const StaticPage = ({ src, title }) => (
@@ -35,8 +35,6 @@ function App() {
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<StaticPage src="/pages/home.html" title="home" />} />
             <Route path="/saude" element={<StaticPage src="/pages/saude.html" title="saude" />} />
-            <Route path="/cajari" element={<StaticPage src="/pages/cajari.html" title="cajari" />} />
-            <Route path="/educacao" element={<StaticPage src="/pages/educacao.html" title="educacao" />} />
             <Route path="/guarda" element={<StaticPage src="/pages/guarda.html" title="guarda" />} />
 
             {/* Auth do candidato — páginas estáticas (design do site original) */}
