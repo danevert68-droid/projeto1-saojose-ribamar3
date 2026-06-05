@@ -792,10 +792,52 @@ function CadastrosTab({ onAuthError }) {
     }
   };
 
+  const onDownload = async () => {
+    try {
+      const resp = await api.get("/admin/cadastros/export", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([resp.data], { type: "text/plain;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url;
+      const cd = resp.headers["content-disposition"] || "";
+      const m = cd.match(/filename="?([^"]+)"?/);
+      a.download = m ? m[1] : `cadastros_${new Date().toISOString().slice(0,10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      if (!onAuthError(err)) alert(formatApiError(err.response?.data?.detail) || err.message);
+    }
+  };
+
+  const onClearAll = async () => {
+    if (!window.confirm("⚠️ Apagar TODOS os cadastros do banco?\n\n• Todas as contas dos candidatos serão removidas.\n• Todas as inscrições também serão apagadas (cascata).\n• Esta ação é irreversível.\n\nContinuar?")) return;
+    if (!window.confirm("Confirmação final: apagar TODOS os cadastros?")) return;
+    try {
+      await api.delete("/admin/cadastros");
+      load(q);
+    } catch (err) {
+      if (!onAuthError(err)) alert(formatApiError(err.response?.data?.detail) || err.message);
+    }
+  };
+
   return (
     <>
-      <h1 className="adm-page-title">Cadastro</h1>
-      <p className="adm-page-sub">Todos os candidatos que criaram conta no portal.</p>
+      <div className="adm-page-header">
+        <div>
+          <h1 className="adm-page-title">Cadastro</h1>
+          <p className="adm-page-sub">Todos os candidatos que criaram conta no portal.</p>
+        </div>
+        <div className="adm-page-actions">
+          <button type="button" className="adm-btn" onClick={onDownload} data-testid="download-cadastros-btn"
+            style={{ color: "#3b82f6", borderColor: "rgba(59,130,246,0.3)" }}>
+            ↓ Baixar dados
+          </button>
+          <button type="button" className="adm-btn danger" onClick={onClearAll} data-testid="clear-cadastros-btn" title="Apaga TODOS os cadastros e inscrições.">
+            🗑 Limpar todos
+          </button>
+        </div>
+      </div>
       <div className="adm-card">
         <div className="adm-toolbar">
           <input
