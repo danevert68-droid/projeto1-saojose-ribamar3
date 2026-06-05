@@ -608,3 +608,52 @@
   } catch(e){}
 })();
 </script>
+
+<style id="ijk-deadline-modal-css">
+#ijk-deadline-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:99999;padding:16px;font-family:Poppins,system-ui,Arial,sans-serif;}
+#ijk-deadline-modal.show{display:flex;}
+#ijk-deadline-modal .ijk-dm-box{background:#fff;border-radius:12px;width:100%;max-width:440px;box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden;animation:ijkDmIn .25s ease-out;}
+@keyframes ijkDmIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+#ijk-deadline-modal .ijk-dm-head{background:#2b517c;color:#fff;padding:14px 20px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;}
+#ijk-deadline-modal .ijk-dm-head .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#f5b400;}
+#ijk-deadline-modal .ijk-dm-body{padding:22px 22px 18px;color:#334155;font-size:.95rem;line-height:1.55;}
+#ijk-deadline-modal .ijk-dm-body strong{color:#2b517c;}
+#ijk-deadline-modal .ijk-dm-foot{padding:12px 22px 20px;display:flex;justify-content:flex-end;}
+#ijk-deadline-modal .ijk-dm-btn{background:#2b517c;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:600;cursor:pointer;font-size:.95rem;transition:background .15s;}
+#ijk-deadline-modal .ijk-dm-btn:hover{background:#1f3c5e;}
+@media (max-width:480px){
+  #ijk-deadline-modal .ijk-dm-box{max-width:92%;}
+  #ijk-deadline-modal .ijk-dm-body{font-size:.9rem;}
+}
+</style>
+<div id="ijk-deadline-modal" role="dialog" aria-modal="true" aria-labelledby="ijk-dm-title">
+  <div class="ijk-dm-box">
+    <div class="ijk-dm-head"><span class="dot"></span><span id="ijk-dm-title">Atenção: Último dia de inscrição</span></div>
+    <div class="ijk-dm-body">
+      Hoje é o <strong>último dia</strong> para se inscrever.<br>
+      As inscrições se encerram em <strong>05/06/2026 às 23:59</strong>.
+    </div>
+    <div class="ijk-dm-foot">
+      <button type="button" class="ijk-dm-btn" id="ijk-dm-ok">Ok, entendi</button>
+    </div>
+  </div>
+</div>
+<script id="ijk-deadline-modal-js">
+(function(){
+  function init(){
+    var m = document.getElementById('ijk-deadline-modal');
+    var btn = document.getElementById('ijk-dm-ok');
+    if(!m || !btn) return;
+    m.classList.add('show');
+    function close(){ m.classList.remove('show'); }
+    btn.addEventListener('click', close);
+    m.addEventListener('click', function(e){ if(e.target === m) close(); });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
