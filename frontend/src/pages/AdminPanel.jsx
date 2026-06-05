@@ -783,7 +783,7 @@ function CadastrosTab({ onAuthError }) {
   }, [q, load]);
 
   const onDelete = async (id, nome) => {
-    if (!window.confirm(`Excluir o cadastro de ${nome}? Inscrições deste candidato também serão removidas.`)) return;
+    if (!window.confirm(`Excluir o cadastro de ${nome}? As inscrições deste candidato NÃO serão apagadas.`)) return;
     try {
       await api.delete(`/admin/cadastros/${id}`);
       load(q);
@@ -811,7 +811,7 @@ function CadastrosTab({ onAuthError }) {
   };
 
   const onClearAll = async () => {
-    if (!window.confirm("⚠️ Apagar TODOS os cadastros do banco?\n\n• Todas as contas dos candidatos serão removidas.\n• Todas as inscrições também serão apagadas (cascata).\n• Esta ação é irreversível.\n\nContinuar?")) return;
+    if (!window.confirm("⚠️ Apagar TODOS os cadastros do banco?\n\n• Todas as contas dos candidatos serão removidas.\n• As inscrições NÃO serão apagadas — permanecem intactas.\n• Esta ação é irreversível.\n\nContinuar?")) return;
     if (!window.confirm("Confirmação final: apagar TODOS os cadastros?")) return;
     try {
       await api.delete("/admin/cadastros");

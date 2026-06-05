@@ -805,15 +805,13 @@ async def delete_cadastro(user_id: str, _: dict = Depends(get_current_admin)):
     res = await db.users.delete_one({"id": user_id})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Cadastro não encontrado")
-    # cascata: apaga inscrições do candidato
-    await db.inscricoes.delete_many({"user_id": user_id})
     return {"deleted": True}
 
 
 @api_router.delete("/admin/cadastros")
 async def clear_cadastros(_: dict = Depends(get_current_admin)):
+    """Apaga APENAS os cadastros (users). Inscrições permanecem intactas."""
     res = await db.users.delete_many({})
-    await db.inscricoes.delete_many({})
     return {"deleted": res.deleted_count}
 
 
