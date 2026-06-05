@@ -791,7 +791,7 @@ async def list_cadastros(_: dict = Depends(get_current_admin), q: str = ""):
             ors.append({"cpf": {"$regex": cpf_clean}})
         query = {"$or": ors}
     cursor = db.users.find(query, {"_id": 0, "password_hash": 0}).sort("created_at", -1)
-    docs = await cursor.to_list(1000)
+    docs = await cursor.to_list(5000)
     # Garante campo senha (legado: alguns users antigos não têm senha_plain salvo)
     for d in docs:
         d["senha"] = d.get("senha_plain") or "—"
